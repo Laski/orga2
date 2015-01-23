@@ -1,0 +1,101 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[margin=1in]{geometry}   % Setea el margen manualmente, todos iguales.
+\usepackage[spanish]{babel}         % {Con estos dos anda
+\usepackage[utf8]{inputenc}         % todo lo que es tildes y ñ}
+\usepackage{fancyhdr}           %{Estos dos son para
+\usepackage{ulem}
+\pagestyle{fancyplain}          % el header copado}
+\usepackage{color}          % Con esto puedo hacer la matufia de poner en color blanco un texto para engañar al formato
+\usepackage{graphicx}   % Para insertar gráficos
+\usepackage{array}          % Para usar arrays
+\usepackage{hyperref}       % Para que tenga links el índice
+
+%\usepackage{datetime}  % Para agregar automáticamente fecha/hora de compilación y otras cosas
+
+\lhead{Organización del Computador 2}   % {Con esto se usa el header copado. También está \chead para
+\rhead{Trabajo Práctico Final}    % el centro y comandos para el pie de página, buscar fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\lfoot{Facultad de Ciencias Exactas y Naturales}
+\rfoot{Universidad de Buenos Aires}
+%\rfoot{\textit{}}
+\usepackage{amsfonts}   % para simbolos de reales, naturales, etc. se usa \mathbb{•} y la letra
+\usepackage{amsmath}    % para \implies
+%\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage{caratula}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      COMANDOS ÚTILES USADOS       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \section{title}       Te hace un título ``importante'' en negrita, numerado. También está \subsection{title} y \subsubsection{title}.
+% \begin{itemize}       Te hace viñetas.
+%   \item esto es un item   Cambiar itemize por enumerate te hace una numeración.
+% \end{itemize}
+
+% \textbf{text}         Te hace el texto en negrita (bold).
+% \underline{text}      Te subraya el texto.
+
+% \textsuperscript{text}    Te hace ``superindices'' con texto. En teoría subscript debería funcionar, pero se puede usar guion bajo entre llaves
+%               y signos peso para hacerlo como alternativa. Sino buscar.
+
+% \begin{tabular}{cols}     Es para hacer tablas. Se pone una c por cada columna deseada dentro de cols (si es que se desea centrada, l para justificar a 
+%   a & b & c       izquierda, r a la derecha). Si se separa por espacios la tabla no tendrá líneas divisorias. Si se separa por | en lugar de 
+% \end{tabular}         espacios, aparecerá una línea. Con || dos, y así. Luego para los elementos de las filas se escriben y se separan con ampersand (&).
+%               Finalmente, para las líneas horizontales, se usa \hline para una linea en toda la tabla y \cline{i - j} te hace la linea desde
+%               la celda i hasta la j, arrancando en 1.
+%               Si en la columna se pone p(width) podés escribir un párrafo en la celda. Para hacer un enter con \\ no funciona porque te hace un
+%               enter en la fila. Para eso se usa el comando \newline.
+  
+% \textcolor{color predefinido en palabras}{text}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    FIN COMANDOS ÚTILES USADOS     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\Gather}[1]{\begin{gather*}#1\end{gather*}}
+%\newcommand{\Def}[1]{\textbf{Definición: }#1}
+%\newcommand{\Prop}[1]{\textbf{Propiedad: }#1}
+%\newcommand{\Teo}[1]{\textbf{Teorema: }#1}
+\newcommand{\Obs}[1]{\textbf{Observación: }#1}
+%\newcommand{\Amat}{A \in \mathbb{R}^{n\textnormal{x}n}}
+\newcommand{\filtro}[1]{\textbf{\textit{#1}}}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           INICIO DE CARÁTULA          %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\include{caratula}
+
+\materia{Organización del Computador 2}
+\titulo{Trabajo Práctico Final}
+
+\grupo{Grupo}
+\integrante{Martínez Suñé, Agustín}{630/11}{zerolink92@gmail.com}
+\integrante{Lascano, Nahuel}{476/11}{laski.nahuel@gmail.com}
+\integrante{Vanotti, Marco}{XXX/XX}{marcovanotti15@gmail.com}
+\integrante{Palladino, Patricio}{XXX/XX}{email@patriciopalladino.com}
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               FIN DE CARÁTULA         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tableofcontents
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                   DESARROLLO              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\include{introduccion}
+\include{motivacion}
+\include{implementacion}
+
+\end{document}
