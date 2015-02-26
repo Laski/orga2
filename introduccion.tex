@@ -1,1 +1,84 @@
 \section{Introducción}
+
+El siguiente informe se presenta como complemento y documentación del trabájo
+practico final de la materia Organización del computador II.\\
+
+El mismo fue realizado dentro del programa Mozilla Winter Of Security
+2014\footnote{https://wiki.mozilla.org/Security/Automation/WinterOfSecurity2014}.
+Éste tiene como finalidad introducir a alumnos de carreras afines a la
+computación al mundo de la seguridad informatica y la automatización. Para
+esto, el equipo de Security
+Automation\footnote{https://wiki.mozilla.org/Security/Automation} de Mozilla
+propuso una serie de proyectos para que distintos grupos de alumnos pudieran
+encarar, contando con un tutor provisto por ellos.\\
+
+En este trabajo se llevó a cabo uno de dichos proyectos, que concistió en
+proveer de funcionalidades de inspección de memoria a la plataforma de análisis
+forense en tiempo real y respuesta a incidentes Mozilla
+Investigator\footnote{http://mig.mozilla.org}, la cual será introducida a
+continuación.\\
+
+\subsection{Mozilla Investigator}
+
+Mozilla Investigator surge en respuesta a los cambios que se ha vivido en la
+infraestructura con el advenimiento del cloud computing. Mientras que
+antes los distintos servidores y servicios permanecian estaticos a lo largo del
+tiempo, sujetos a revisiones lentas y estrictas a la hora de ser alterados, hoy
+en dia la virtualización permite un dinamismo y escala en la infraestructura
+que solia ser impensable. Este nuevo modelo demostro ser adecuado en un sin
+numero de situaciones, pero no viene sin traer sus nuevos desafios.\\
+
+Uno de estos desafios, y del cual Mozilla Investigator (MIG) se encarga, es
+como manejar la seguridad y respuesta a incidentes en escalas nunca antes
+vistas de manera rapida y efectiva.\\
+
+Para llevar a cabo esta tarea, MIG provee un sistema distribuido que facilita
+realizar distintos tipos de chequeos en los servidores de Mozilla. Esto se
+logra con una arquitectura distribuida, en la cual los distintos servidores
+cuentan con un agente corriendo de manera constante el cual lee una cola de
+queries a medida que esta se va llenando. Una vez que un
+query es leido, el agente actua de manera acorde y envia su respuesta.
+El funcionamiento del sistema es orquestado por MIG Scheduler, uno o
+más servidores distinguidos, encargados de distribuir los queries a
+los agentes y comunicar las respuestas al usuario. De este modo un investigador
+de Mozilla puede conectarse al servidor de MIG y realizar consultas a miles de
+servidores en simultaneo en cuestion de segundos, permitiendo acelerar la
+reacción frente a incidentes de seguridad y agilizando las actividades
+contidianas de security operations.\\
+
+Si bien MIG es usado hoy en dia en producción, se encuentra aun bajo
+desarrollo, principalmente con respecto a qué tipo de queries puede
+responder un agente. En la actualidad esto está limitado a responder consultas
+sobre la integridad del sistema de archivos, como chequear el nombre, contenido
+y hash de los mismos; y consultar el estado del stack de red del sistema donde
+está corriendo.\\
+
+Existen proyectos para agregar soporte para distintos tipos de queries, como
+consultar y manejar reglas de los distintos firewalls, crear, bloquear y
+destruir cuentas de usuarios, analizar el trafico de la red, acceso a bajo
+nivel de los distintos componentes fisicos del servidor, y muchos otros. En
+particular, uno de estos modulos, que pronto se encontrará en producción, es el
+desarrollo para este trabajo, el cual permite analizar la memoria principal de
+los procesos que se encuentran corriendo en el sistema, y que se introducierá a
+continuación.\\
+
+\subsection{MASCHE}
+
+No todo ataque o error de seguridad se manifiesta en el sistema de archivos de
+un servidor, sino que pueden residir unicamente en la memoria principal del
+mismo. A su vez, existen escenarios donde estos dos niveles de memoria no se
+encuentren en sincronía, haciendo que sea necesario poder acceder a ambos
+durante una investigación. MASCHE, por las siglas de Memory Analysis Suite for
+Checking the Harmony of Endpoints, es una respuesta a esto, desarrollada con el
+fin de ser integrado a MIG.\\
+
+El analisis forense de memoria es un area muy amplia y compleja dentro de la
+respuesta a incidentes de seguridad informatica, por lo que para este proyecto
+nos enfocamos en los siguientes casos de uso, de manera de terminarlo en un
+lapzo de tiempo razonable:
+
+\begin{enumerate}
+
+\item (...)
+
+\end{enumerate}
