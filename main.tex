@@ -39,14 +39,14 @@
 % \textsuperscript{text}    Te hace ``superindices'' con texto. En teoría subscript debería funcionar, pero se puede usar guion bajo entre llaves
 %               y signos peso para hacerlo como alternativa. Sino buscar.
 
-% \begin{tabular}{cols}     Es para hacer tablas. Se pone una c por cada columna deseada dentro de cols (si es que se desea centrada, l para justificar a 
-%   a & b & c       izquierda, r a la derecha). Si se separa por espacios la tabla no tendrá líneas divisorias. Si se separa por | en lugar de 
+% \begin{tabular}{cols}     Es para hacer tablas. Se pone una c por cada columna deseada dentro de cols (si es que se desea centrada, l para justificar a
+%   a & b & c       izquierda, r a la derecha). Si se separa por espacios la tabla no tendrá líneas divisorias. Si se separa por | en lugar de
 % \end{tabular}         espacios, aparecerá una línea. Con || dos, y así. Luego para los elementos de las filas se escriben y se separan con ampersand (&).
 %               Finalmente, para las líneas horizontales, se usa \hline para una linea en toda la tabla y \cline{i - j} te hace la linea desde
 %               la celda i hasta la j, arrancando en 1.
 %               Si en la columna se pone p(width) podés escribir un párrafo en la celda. Para hacer un enter con \\ no funciona porque te hace un
 %               enter en la fila. Para eso se usa el comando \newline.
-  
+
 % \textcolor{color predefinido en palabras}{text}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,13 +70,14 @@
 %\include{caratula}
 
 \materia{Organización del Computador 2}
-\titulo{Trabajo Práctico Final}
+\titulo{MASCHE\\Memory Analysis Suite for \\Checking the
+Harmony of Endpoints}
 
 \grupo{Grupo}
 \integrante{Martínez Suñé, Agustín}{630/11}{zerolink92@gmail.com}
 \integrante{Lascano, Nahuel}{476/11}{laski.nahuel@gmail.com}
-\integrante{Vanotti, Marco}{XXX/XX}{marcovanotti15@gmail.com}
-\integrante{Palladino, Patricio}{XXX/XX}{email@patriciopalladino.com}
+\integrante{Vanotti, Marco}{229/10}{marcovanotti15@gmail.com}
+\integrante{Palladino, Patricio}{218/10}{email@patriciopalladino.com}
 
 \begin{titlepage}
 \maketitle
@@ -93,14 +94,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                   DESARROLLO              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
- 
+
 \include{introduccion}
-\include{motivacion}
-\section{Implementación}
-\include{implementacion-search}
-\include{implementacion-windows}
-\include{implementacion-linux}
-\include{implementacion-mac}
-\include{implementacion-cgo}
+
+\include{plataformas/plataformas}
+\include{plataformas/linux}
+\include{plataformas/windows}
+\include{plataformas/mac}
+
+\include{implementacion/implementacion}
+\include{implementacion/process}
+\include{implementacion/memaccess}
+\include{implementacion/memsearch}
+\include{implementacion/listlibs}
+
+\include{apendices/apendices}
+\include{apendices/go}
+\include{apendices/ejemplo}
 
 \end{document}
