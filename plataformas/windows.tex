@@ -1,1 +1,22 @@
 \subsection{Windows NT}
+
+Windows NT es la familia actual de sistemas operativos de Microsoft, lanzada
+por primera vez en 1993, y reemplazando definitivamente al Windows anterior,
+basado en MS-DOS, con el lanzamiento de XP.\\
+
+Windows NT fue el primer sistema operativo de 32 bits de Microsoft soportando
+distintas plataformas de hardware, pero abtrayendose de ellas en una capa
+llamada HAL (por Hardware Abstraction Layer).\\
+
+Sobre el HAL corren tanto los drivers como un kernel hibrido, ambos asentando
+las bases del sistema exponiendo los Executive Services (responsable de la
+mayoria del trabajo del sistema) al usuario, accesible a traves de distintas
+APIs.\\
+
+Si bien la idea original de NT era desarrollar una continuación de OS/2 que
+pueda correr aplicaciones POSIX, por motivos comerciales se decidio no abandonar
+la plataforma Windows, sino que se adaptó la API legacy de está para NT en
+WIN32. Es ésta ultima la que utilizamos para la realización del proyecto, ya que
+si bien no es open source, se cuenta con una excelente documentación en online
+en la MSDN\footnote{https://msdn.microsoft.com/en-us/default.aspx}.\\
+
