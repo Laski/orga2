@@ -1,1 +1,12 @@
 \subsection{GNU/Linux}
+No haremos aquí una descripción exhaustiva de las características de Linux ya que su funcionamiento es ampliamente conocido y estudiado en el ámbito de las Ciencias de la Computación. En cambio nos centraremos en los aspectos principales que permitieron el desarrollo de los objetivos del trabajo.
+
+Una de las principales características de Linux (y, en general, de los sistemas basados en Unix) es el principio de que \textit{todo es un archivo}, lo que provee una interfaz común para acceder a recursos de entrada/salida. Siguiendo este principio Linux cuenta con \textit{process filesystem (procfs)}, un pseudo sistema de archivos que se utiliza para acceder a información de los procesos que están corriendo en el sistema. \textit{Procfs} se encuentra en el directorio /proc, y en /proc/PID/ se encuentra la información de un proceso según su PID.
+
+Estos son los pseudo archivos que utilizamos en el trabajo:
+
+\begin{itemize}
+ \item /proc/[pid]/maps contiene las regiones de memoria mapeadas por el proceso y sus correspondientes permisos.
+ \item /proc/[pid]/mem se usa para acceder a las páginas de la memoria del proceso.
+ \item /proc/[pid]/status brinda información del proceso, por ejemplo, el pathname del ejecutable o el PID del proceso padre.
+\end{itemize}
