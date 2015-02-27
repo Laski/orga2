@@ -9,9 +9,9 @@ operativo NeXTSTEP de la empresa NeXT, luego adquirida por Apple, lo que llevó
 a su inclusión en la versión 10 de Mac OS, llamada actualmente OS X.\\
 
 A su vez, XNU está basado en el kernel Mach. Éste surgió como un proyecto de
-investicación en Carnegie Mellon University sobre micro kernels, programacion
+investigación en Carnegie Mellon University sobre micro kernels, programación
 distribuida y computación en paralela. Cómo tal, presenta una arquitectura muy
-diferente respecto a los demas sistemas comeriales, basandose fuertemente en la
+diferente respecto a los demás sistemas comerciales, basándose fuertemente en la
 orientación a objetos y pasajes de mensajes.\\
 
 Con la integración de este kernel a Mac OS surgen distintos cambios. Los más
@@ -25,15 +25,15 @@ Durante el desarrollo del proyecto se intento utilizar la API POSIX en cuanto
 era posible, pero lamentablemente esta es muy incompleta, y no fue suficiente
 en la mayoría de los casos. Por esto mismo hubo que recurrir al sistema de IPC
 de Mach, el cual se encuentra notablemente indocumentado. Afortunadamente el el
-este XNU es open source en casi su totalidad, por lo que ésto no nos impidio
+este XNU es open source en casi su totalidad, por lo que esto no nos impidió
 seguir adelante.\\
 
 Es destacable mencionar que, a diferencia de en UNIX, la comunicación con el
-kernel usando la API de Mach se hace a traves de Remote Procedure Calls. Esto
+kernel usando la API de Mach se hace a través de Remote Procedure Calls. Esto
 se logra utilizando un lenguaje especial, Mach Interface Language, para
 declarar los mensajes aceptados por cada modulo, y transformando los llamados a
-funciones (que serian syscalls en otro sistema) a envio de mensajes mediante un
-puerto.  Debido a la falta de documentación al respecto, y a la antiguedad de
+funciones (que serian syscalls en otro sistema) a envío de mensajes mediante un
+puerto.  Debido a la falta de documentación al respecto, y a la antigüedad de
 la poca que se encuentra disponible, no explicaremos en este informe más sobre
 el tema, pero se puede investigar al respecto buscando las referencias
 presentes en la bibliografía.\\
