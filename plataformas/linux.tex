@@ -1,14 +1,35 @@
 \subsection{GNU/Linux}
-No haremos aquí una descripción exhaustiva de las características de Linux ya que su funcionamiento es ampliamente conocido y estudiado en el ámbito de las Ciencias de la Computación. En cambio nos centraremos en los aspectos principales que permitieron el desarrollo de los objetivos del trabajo.
 
-Una de las principales características de Linux (y, en general, de los sistemas basados en Unix) es el principio de que \textit{todo es un archivo}, lo que provee una interfaz común para acceder a recursos de entrada/salida. Siguiendo este principio Linux cuenta con \textit{process filesystem (procfs)}, un pseudo sistema de archivos que se utiliza para acceder a información de los procesos que están corriendo en el sistema. \textit{Procfs} se encuentra en el directorio /proc, y en /proc/PID/ se encuentra la información de un proceso según su PID.
+No haremos aquí una descripción arquitectura de Linux ya que, si bien abunda el
+maeterial al respecto, no fue necesario tener un conocimiento de la misma para
+poder llevar adelante este proyecto, gracias a las distintas abstracciones que
+el sistema provee.\\
 
-Queremos remarcar que /proc no es un directorio con archivos reales que están en disco, sino que es un sistema de archivos especial que funciona como vía acceso a información de las estructuras del kernel. Si fuese de otra manera el acceso a esta información debería realizarse a traves de syscalls y perdería el éstandar de interfaz de acceso a archivo.
+Entre las distintas formas de comunicarse con el kernel Linux que tiene un
+proceso de userland, una que nos fue especialmente util para la implementacion
+de MASCHE fue procfs. Éste es un sistema de archivos especial implementado
+originalmente en UNIX V8, luego portado a SVR4 y Plan 9, para ser ésta ultima
+implementación clonada luego por casi toda la familia UNIX. La finalidad del
+mismo es presentar distinta información del sistema y los procesos que están
+corriendo en forma de archivos y carpetas. El mismo corre en Linux en modo
+kernel y expone distintas estructuras de éste ultimo en archivos tipicamente
+montados en /proc.\\
 
-Estos son los pseudo archivos que utilizamos en el trabajo:
+La implementación de Linux de procfs contiene un sinfin de archivos con
+información no solo de los procesos sino tambien del sistema en si, pero para
+este proyecto bastó con utilizar los siguientes:\\
 
 \begin{itemize}
- \item /proc/[pid]/maps contiene las regiones de memoria mapeadas por el proceso y sus correspondientes permisos.
- \item /proc/[pid]/mem se usa para acceder a las páginas de la memoria del proceso.
- \item /proc/[pid]/status brinda información del proceso, por ejemplo, el pathname del ejecutable o el PID del proceso padre.
+
+\item /proc/[pid]/maps contiene las regiones de memoria mapeadas por el proceso
+    y sus correspondientes permisos.
+
+\item /proc/[pid]/mem se usa para acceder a las páginas de la memoria del
+    proceso. Es un archivo con el contenido de la memoria del proceso, donde un
+    offset dentro del mismo corresponde a una posición de memoria en el address
+    space el proceso.
+
+\item /proc/[pid]/status brinda información del proceso, por ejemplo, el
+    pathname del ejecutable o el PID del proceso padre.
+
 \end{itemize}
