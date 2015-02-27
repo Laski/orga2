@@ -79,6 +79,19 @@ lapzo de tiempo razonable:
 
 \begin{enumerate}
 
-\item (...)
+\item Identificar procesos utilizando versiones vulnerables de librerías
+    dinámicas.
+
+\item Encontrar los procesos que tienen secretos filtrados, como claves
+    privadas hechas publicas en algún incidente, en su memoria principal.
+
+\item Localizar procesos con patrones de código que se sepan suceptibles a
+    distintas vulnerabilidades. Notar que esto es necesario cuando una libería
+    vulnerable es linkeada estaticamente, y no unicamente para código el
+    programa en si mismo.
+
+\item Proveer una API unificada de acceso a memoria principal de procesos en
+    Windows NT, GNU/Linux y OS X, que permita agregar nuevas funcionalidades a
+    MIG de manera práctica.
 
 \end{enumerate}
