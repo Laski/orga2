@@ -1,1 +1,23 @@
 \subsection{Módulo Memsearch}
+
+Memsearch se basa exclusivamente en la funcionalidad provista por Memaccess,
+por lo que basto una única implementación en Go para todas las plataformas.
+Este modulo permite la búsqueda de distintos patrones en la memoria del
+proceso.\\
+
+Este modulo exporta únicamente las siguientes dos funciones:
+
+\begin{itemize}
+
+\item FindBytesSequence: Busca la primer aparición literal de una cadena de
+bytes a partir de una dirección dada en la memoria de un proceso. Su
+implementación consiste en llamar a memaccess.SlidingWalkMemory pasándole una
+función que busque de manera secuencial en cada buffer leído.\\
+
+\item FindRegexpMatch: Es similar a la anterior, pero en lugar de buscar
+ocurrencias literales utiliza una regexp para encontrar secciones de memoria
+que matcheen con esta. La implementación también es parecida, reemplazándose la
+búsqueda secuencial por su equivalente en expresiones regulares.\\
+
+\end{itemize}
+
