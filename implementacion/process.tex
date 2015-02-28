@@ -21,7 +21,7 @@ Luego, la información restante que puede pedirse sobre el proceso es sacada de
 Para listar los procesos disponibles basta con inspeccionar los directorios de
 \textit{/proc}.
 
-\subsection{Implementación en Windows y OS X}
+\subsubsection{Implementación en Windows y OS X}
 
 A diferencia de en Linux donde todo pudo ser implementado en Go, Windows y OS X
 requirieron utilizar llamadas a APIs en C. Si bien estas pueden hacerse
@@ -30,19 +30,19 @@ proyecto es no abusar de esto, y exportar nuestras propias funciones de C en
 caso de que el código se vuelva muy engorroso.\\
 
 En este caso creamos una interfaz común en C que tanto la implementación de
-Windows como la de OS X implementan. Esta simplemente define cómo se representa,
+Windows como la de OS X implementan. Ésta simplemente define cómo se representa,
 abre y cierra un proceso en cada sistema.\\
 
-En el caso de OS X un proceso es representado por un \texit{task_t} que es un
-renombre de un \texit{mach_port_t}, un puerto a través del cual comunicarse con
-el proceso y poder inspeccionar distintas características de este. Abrir un
-proceso luego consiste simplemente llamar a \texit{task_for_pid} y cerrarlo de
-alocar el task.
+En el caso de OS X un proceso es representado por un \textit{task\_t} que es un
+renombre de un \textit{mach\_port\_t}, un puerto a través del cual comunicarse
+con el proceso y poder inspeccionar distintas características de este. Abrir un
+proceso luego consiste simplemente llamar a \textit{task\_for\_pid} y cerrarlo
+de alocar el task.
 
 Para obtener información de un proceso y listar los mismos se utiliza en OS X
 la API POSIX del sistema, haciendo que implementar esto en Go no sea demasiado
-complejo. En particular las funciones \texit{proc_pidpath} y
-\textit{proc_listpids} de la librería \textit{libproc} hacen justo lo
+complejo. En particular las funciones \textit{proc\_pidpath} y
+\textit{proc\_listpids} de la librería \textit{libproc} hacen justo lo
 necesario.\\
 
 La API WIN32 ya provee un tipo \textit{HANDLE} que es utilizado para describir
