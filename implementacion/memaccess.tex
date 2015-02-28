@@ -1,1 +1,142 @@
-\subsection{Módulo Memsearch}
+\subsection{Módulo Memaccess}
+
+Memaccess, el modulo principal de MASCHE, exporta una misma interfaz para
+acceder a la memoria de un proceso (representado por un Process del modulo
+anterior) en cada una de las plataformas soportadas.\\
+
+Para lograr esto hizo falta abstraerse de la estructuración y el manejo de la
+memoria en cada sistema. Esto se llevo acabo planteando la memoria de un proceso
+como secuencia ordenada de bloques contiguos de memoria.\\
+
+Cada uno de estos bloques es representado por una estructura MemoryRegion, que
+posee la dirección de inicio del mismo (en el address space del proceso) y su
+tamaño. Para obtenerlos se debe utilizar la función NextReadableMemoryRegion,
+que dado un Process y una dirección retornara el próximo bloque de memoria
+legible a partir de la misma.\\
+
+Una decisión que debimos tomar a la hora de hacer esto fue qué hacer cuando nos
+encontramos con un bloque de memoria sin permiso de lectura. Las opciones que
+contemplábamos eran las siguientes:
+
+\begin{enumerate}
+
+\item Ignorar este la memoria y buscar el próximo bloque legible.
+
+\begin{itemize}
+
+\item Ventajas: Es fácil de implementar, y no interrumpe ni compromete de forma
+alguna al proceso inspeccionado.
+
+\item Desventajas: Un atacante puede aprovechar esto para ocultar información
+de MASCHE manteniendo la memoria sin permiso de lectura la mayor cantidad de
+tiempo posible.
+
+\end{itemize}
+
+\item Cambiar los permisos, copiar la memoria y restaurar los permisos
+originales.
+
+\begin{itemize}
+
+\item Ventajas: Permite leer toda la memoria.
+
+\item Desventajas: El cambio de permisos se realiza mientras se está ejecutando
+el proceso, lo que puede llevarse a que se deje al mismo con permisos distintos
+a los que esperaba debido a esto. Si esto ocurre existe la posibilidad de que
+el proceso no funcione como es esperado o incluso a que el sistema operativo
+detenga su ejecución debido a un error de permisos.
+
+\end{itemize}
+
+\item Pausar el proceso, hacer lo mismo que en la opción anterior, y volver a
+correr el proceso.
+
+\begin{itemize}
+
+\item Ventajas: Permite leer toda la memoria sin riesgos de comprometer la
+ejecución del proceso inspeccionado.
+
+\item Desventajas: Daña la performance del sistema, ya que detiene la ejecución
+de los procesos inspeccionados.
+
+\end{itemize}
+
+\end{enumerate}
+
+\noindent Como se menciono anteriormente, priorizamos los objetivos de MIG a la
+hora de tomar este tipo de decisiones, y éste debe interferir lo mínimo posible
+con el sistema que está analizando, por lo que se optó por la primer opción.
+Decidir no frenar los procesos resolvió también qué hacer cuando el layout de
+la memoria cambia mientras se la está analizando. MASCHE no hace nada en
+especial al respecto más que asegurarse de poder seguir adelante con el resto
+de su trabajo.\\
+
+Una vez conocido el layout de la memoria mediante los MemoryRegion disponibles
+uno puede leer la misma con la función CopyMemory, que recibe un Process, una
+dirección de memoria dentro del mismo, y un buffer a llenarse con la memoria
+del proceso a partir de la dirección dada.\\
+
+Con esto ya bastaría para poder inspeccionar la memoria de un proceso, pero
+sabiendo que el principal objetivo es buscar patrones conocidos en la misma
+se implementaron dos funciones qué facilitan dicha tarea. Las mismas están
+basadas en la funcionalidad que ya se explicó, por lo que tienen una sola
+implementación para todas las plataformas.\\
+
+La primera de estas, WalkMemory, trabaja sobre un Process y un buffer de bytes.
+Ella va llenando el buffer de manera secuencial con la memoria del proceso
+(iniciando donde dejó la lectura anterior) y llamando a una función provista
+por el usuario con el buffer y la dirección inicial de la memoria que contiene
+luego de cada vez que se llena. La segunda función, SlidingWalkMemory, es
+similar pero llena el buffer empezando por la posición del medio de la memoria
+que se había leído en la iteración anterior.\\
+
+Se explican a continuación las implementaciones de NextReadableMemoryRegion y
+CopyMemory de cada plataforma.\\
+
+\subsubsection{Implementación en Linux}
+
+Es en la implementación de este modulo donde más se puede apreciar el poder de
+procfs y la simpleza que conlleva tener una interfaz de archivos para acceder a
+la información.\\
+
+En este caso, NextReadableMemoryRegion simplemente lee una a una las lineas de
+el archivo maps dentro de /proc/[pid], buscando el primer memory map que
+contenga la dirección provista, uniéndolo a los que le siguen en caso de ser
+consecutivos y legibles, y retornando la información obtenida.\\
+
+Sorprendentemente, CopyMemory fue aun más sencillo de implementar, pues solo
+hace falta abrir el archivo /proc/[pid]/mem y utilizar como offset de lectura
+la dirección provista.\\
+
+\subsubsection{Implementación en OS X}
+
+Nuevamente se creo una interfaz en C común para Windows y OS X, la misma sólo
+contiene las funciones get\_next\_readable\_region copy\_process\_memory, que
+luego son llamadas desde Go en la implementación de las funciones descriptas.\\
+
+En el caso de get\_next\_readable\_region el sistema operativo cuenta con el
+llamado RPC mach\_vm\_region\_recurse, que realiza una tarea muy similar. La
+principal diferencia es que la memoria en OS X se encuentra organizada de
+manera distinta, de manera recursiva, donde un mapa de memoria puede estar
+incluido como submapa de otro. Esto es utilizado normalmente para poder
+compartir las copias en memoria librerías dinámicas entre distintos procesos de
+manera sencilla, y no es algo que suela utilizarse más allá de esto.
+Simplemente debe tenerse en cuenta que al pedir una region de memoria se puede
+obtener en realidad un submapa, y en este caso nos introducimos en el mismo
+para encontrar la región buscada. A su vez, igual que en el caso de Linux,
+unimos las distintas regiones consecutivas en una sola.\\
+
+Copiar memoria resultó más sencillo, ya que se provee la función
+mach\_vm\_read\_overwrite, que copia el contenido de la memoria del proceso a
+un buffer local, sin limitaciones impuestas por el alineamiento ni limites
+entre páginas.
+
+\subsubsection{Implementación en Windows}
+
+La implementación en windows resultó asombrosamente similar. La principal
+diferencia, además de que no se usa un sistema de RPC, es que la memoria no
+está organizada de manera jerárquica, simplificando la implementación de
+get\_next\_readable\_region.\\
+
+Comparándola con la implementación de OS X, VirtualQueryEx cumple el papel de
+mach\_vim\_region\_recurse, y ReadProcessMemory de mach\_vm\_read\_overwrite.\\
