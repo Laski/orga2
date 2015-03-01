@@ -1,1 +1,169 @@
 \subsection{Módulo Listlibs}
+
+El último modulo de MASCHE, Listlibs, permite listar las librerías dinámicas
+cargadas por un proceso. Es importante notar que estas no son necesariamente
+las mismas que se pueden ver en el binario que está corriendo el mismo, sino
+que nos enfocamos en obtener la información acerca de cuales están
+efectivamente cargadas.\\
+
+Listlibs exporta simplemente la función ListLoadedLibraries. Ésta retorna una
+lista de paths a las distintas librerías cargadas, y su implementación difiere
+completamente en cada plataforma.\\
+
+\subsubsection{Implementación en Linux}
+
+En el caso de Linux las librerías dinámicas son cargadas utilizando mmap, una
+syscall que mapea el contenido de un archivo en la memoria virtual del proceso.
+Gracias a esto basta con analizar el contenido de /proc/[pid]/map para obtener
+la información buscada.\\
+
+La función ListLoadedLibraries en Linux simplemente parsea linea por linea el
+archivo mencionado, y en caso de contar con un path a un archivo mapeado, éste
+se agrega a la lista a devolver.\\
+
+\subsubsection{Implementación en Windows}
+
+Si bien no se cuenta con un sistema como procfs simplificando las cosas en
+Windows, la API WIN32 es sumamente completa y nos permitió obtener la lista de
+librerías cargadas sin demasiado problema.\\
+
+La función EnumProcessModulesEx realiza algo muy similar a lo que estábamos
+buscando implementar, con la diferencia de que en lugar de retornar la ruta a
+los archivos cargados, se retornan HMODULEs. Éstos últimos son handles a un
+modulo cargado (representado con la dirección en memoria del mismo) que pueden
+utilizarse en distintos llamados de WIN32. En particular, los utilizamos con
+GetModuleFileNameEx para obtener el archivo que cada modulo representaba.\\
+
+Fuera de esto, solo tuvimos que encargarnos de alocar los recursos necesarios
+para llamar a estas funciones, lo cual no es trivial y se logró mediante
+iteraciones de prueba y error, pero no dificultó demasiado la tarea.\\
+
+\subsubsection{Implementación en OS X}
+
+Contrario a las otras plataformas, esta tarea resultó sorprendentemente
+engorrosa en OS X. Como era de esperarse, no se encuentra disponible
+documentación oficial alguna sobre cómo realizar esto. Pero fue particularmente
+llamativo no encontrar funcionalidad que permita hacer esto en el código del
+kernel ni las herramientas open source liberadas por Apple.\\
+
+Para empeorar aún más la situación, toda la documentación extraoficial
+encontrada en la web al respecto se encontraba ampliamente desactualizada y
+recurría a buscar patrones reconocibles dentro de toda la memoria del proceso
+para obtener algún indicio, no del todo fiable, de qué librerías habían sido
+cargadas. Si bien esto ultimo es aceptable en muchas situaciones, se encuentra
+en conflicto directo con el objetivo de MIG de interferir lo menos posible la
+performance del sistema analizado.\\
+
+Sin embargo, no encontrar información al respecto no puede ser un sinónimo de
+que esta funcionalidad no pueda implementarse de una forma eficiente, ya que es
+necesario para el funcionamiento normal del sistema operativo, en particular
+para el linker dinámico.\\
+
+Afortunadamente, fuimos a parar con el llamado RPC \textit{task\_info}, que
+provee distinta información acerca de un proceso a quien lo llame. En este
+caso, nos interesó obtener información acerca del linkeo dinámico del proceso,
+llamada TASK\_DYLD\_INFO, el cual retorna la siguiente estructura:
+
+\begin{lstlisting}[language=C]
+struct task_dyld_info {
+	mach_vm_address_t	all_image_info_addr;
+	mach_vm_size_t		all_image_info_size;
+    integer_t           all_image_info_format;
+};
+\end{lstlisting}
+
+\noindent El primer campo de la misma es la dirección dentro de la memoria del
+proceso de la estructura \textit{all\_image\_info}, que contiene información
+sobre todos los binarios cargados por el linker dinámico. Para obtener lo
+buscado nos queda entonces leer esta estructura desde la memoria del proceso.\\
+
+El problema al hacer esto, es que el proceso inspeccionado puede ser de 32 o 64
+bits, independientemente de cómo este compilado MASCHE, por lo que tenemos que
+soportar ambos. Por suerte, Apple agrego en versiones recientes del struct
+\textit{task\_dyld\_info} su tercer parámetro, que nos provee esta información.
+Una vez obtenido esto, podemos leer una de las siguientes estructuras,
+dependiendo cual corresponda:
+
+\begin{lstlisting}[language=C]
+struct user32_dyld_all_image_infos {
+	uint32_t	version;
+	uint32_t	infoArrayCount;
+	user32_addr_t	infoArray;
+	user32_addr_t	notification;
+	bool		processDetachedFromSharedRegion;
+	bool		libSystemInitialized;
+	user32_addr_t	dyldImageLoadAddress;
+	user32_addr_t	jitInfo;
+	user32_addr_t	dyldVersion;
+	user32_addr_t	errorMessage;
+	user32_addr_t	terminationFlags;
+	user32_addr_t	coreSymbolicationShmPage;
+	user32_addr_t	systemOrderFlag;
+	user32_size_t	uuidArrayCount;
+	user32_addr_t	uuidArray;
+	user32_addr_t	dyldAllImageInfosAddress;
+};
+
+struct user64_dyld_all_image_infos {
+	uint32_t	version;
+	uint32_t	infoArrayCount;
+	user64_addr_t	infoArray;
+	user64_addr_t	notification;
+	bool		processDetachedFromSharedRegion;
+	bool		libSystemInitialized;
+	user64_addr_t	dyldImageLoadAddress;
+	user64_addr_t	jitInfo;
+	user64_addr_t	dyldVersion;
+	user64_addr_t	errorMessage;
+	user64_addr_t	terminationFlags;
+	user64_addr_t	coreSymbolicationShmPage;
+	user64_addr_t	systemOrderFlag;
+	user64_size_t	uuidArrayCount;
+	user64_addr_t	uuidArray;
+	user64_addr_t	dyldAllImageInfosAddress;
+};
+\end{lstlisting}
+
+\noindent Es importante notar que las mismas no están exportadas en ningún
+header accesible al usuario de OS X, sino que pudimos conocer su definición
+inspeccionando el código de XNU. Por este motivo no utilizamos las mismas en el
+código de MASCHE, ya que podría incurrir en una violación del copyright de
+Apple. En lugar de esto, se utilizaron offsets y aritmética de punteros manual
+para leer lo restante.
+
+Aclarado esto último, veamos qué nos interesa de estos structs. infoArray es la
+posición inicial de un arreglo con información de cada una de las librerías, e
+infoArrayCount el tamaño del mismo, por lo que solo necesitamos de estos
+campos.\\
+
+El arreglo que queremos leer esta compuesto por elementos de la siguiente
+estructura según el modo en el qué este corriendo el proceso:
+
+\begin{lstlisting}[language=C]
+struct user32_dyld_image_info {
+	user32_addr_t	imageLoadAddress;
+	user32_addr_t	imageFilePath;
+	user32_ulong_t	imageFileModDate;
+};
+
+struct user64_dyld_image_info {
+	user64_addr_t	imageLoadAddress;
+	user64_addr_t	imageFilePath;
+	user64_ulong_t	imageFileModDate;
+};
+\end{lstlisting}
+
+Finalmente imageFilePath es la dirección inicial del path de la librería
+representado como un string de C. Por lo que sólo queda copiar esta cadena de
+texto.\\
+
+Vale aclarar que copiar la misma no es algo trivial, ya que se desconoce su
+tamaño, y se encuentra en la memoria del otro proceso. Pero luego de haber
+implementado Memaccess esto nos resultó familiar. Incluso podrían haberse
+utilizado las primitivas exportadas por Memaccess, pero al haber sido
+desarrolladas con el fin de exportarse a Go utilizarlas desde C resultaba muy
+engorroso.\\
+
+Una vez copiados los strings, estamos en condiciones de devolver un arreglo con
+todos los paths, y la tarea queda completa.\\
+
