@@ -7,20 +7,20 @@ el sistema provee.\\
 
 Entre las distintas formas de comunicarse con el kernel Linux que tiene un
 proceso de userland, una que nos fue especialmente útil para la implementación
-de MASCHE fue procfs. Éste es un sistema de archivos especial implementado
-originalmente en UNIX V8, luego portado a SVR4 y Plan 9, para ser ésta ultima
+de MASCHE fue $procfs$. Este es un sistema de archivos especial implementado
+originalmente en UNIX V8, luego portado a SVR4 y Plan 9, para ser esta ultima
 implementación clonada luego por casi toda la familia UNIX. La finalidad del
-mismo es presentar distinta información del sistema y los procesos que están
+mismo es presentar cierta información del sistema y los procesos que están
 corriendo en forma de archivos y carpetas.\\
 
-Queremos remarcar que /proc no es un directorio con archivos reales que están
-en disco, sino que es un sistema de archivos especial que funciona como vía
-acceso a información de las estructuras del kernel. Si fuese de otra manera el
+Hace falta remarcar que $/proc$ no es un directorio con archivos reales que están
+en disco sino que es un sistema de archivos especial que funciona como vía de
+acceso a información de las estructuras del kernel. Sin él, el
 acceso a esta información debería realizarse a través de syscalls y perdería el
 estándar de interfaz de acceso a archivo.\\
 
 La implementación de Linux de procfs contiene un sinfín de archivos con
-información no solo de los procesos sino también del sistema en si, pero para
+información no solo de los procesos sino también del sistema en sí, pero para
 este proyecto bastó con utilizar los siguientes:\\
 
 \begin{itemize}

@@ -31,7 +31,7 @@ MASCHE, podría haber simplificado mucho la mitigación del problema, y aumentad
 la confianza que el equipo de seguridad tiene en la ejecución de la misma.\\
 
 Afortunadamente OpenSSL es utilizado normalmente cómo una librería dinámica, por
-lo que utilizando los módulos Process y Listlibs se podrá encontrar que procesos
+lo que utilizando los módulos Process y Listlibs se podrá encontrar qué procesos
 deben reiniciarse luego de actualizar esta librería.\\
 
 Pero esto no alcanza para estar seguros de que ningún proceso vulnerable está
@@ -79,7 +79,7 @@ index a2e2475..bcb99b8 100644
 \end{lstlisting}
 
 Luego es cuestión de crear una firma de la función
-\textit{tls1\_process\_heartbeat} en su vulnerable. Si bien esto no es algo
+\textit{tls1\_process\_heartbeat} en su versión vulnerable. Si bien esto no es algo
 trivial, es un problema cotidiano en la práctica, y no nos embarcamos en éste
 durante el proyecto. Pero a modo de ejemplo, generamos la firma para una
 version con símbolos de OpenSSL compilada con GCC en su version más reciente de

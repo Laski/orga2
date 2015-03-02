@@ -11,7 +11,7 @@ como secuencia ordenada de bloques contiguos de memoria.\\
 Cada uno de estos bloques es representado por una estructura MemoryRegion, que
 posee la dirección de inicio del mismo (en el address space del proceso) y su
 tamaño. Para obtenerlos se debe utilizar la función NextReadableMemoryRegion,
-que dado un Process y una dirección retornara el próximo bloque de memoria
+que dado un Process y una dirección retornará el próximo bloque de memoria
 legible a partir de la misma.\\
 
 Una decisión que debimos tomar a la hora de hacer esto fue qué hacer cuando nos
@@ -64,7 +64,7 @@ de los procesos inspeccionados.
 \end{enumerate}
 
 \noindent Como se menciono anteriormente, priorizamos los objetivos de MIG a la
-hora de tomar este tipo de decisiones, y éste debe interferir lo mínimo posible
+hora de tomar este tipo de decisiones, y este debe interferir lo mínimo posible
 con el sistema que está analizando, por lo que se optó por la primer opción.
 Decidir no frenar los procesos resolvió también qué hacer cuando el layout de
 la memoria cambia mientras se la está analizando. MASCHE no hace nada en
@@ -95,12 +95,12 @@ CopyMemory de cada plataforma.\\
 
 \subsubsection{Implementación en Linux}
 
-Es en la implementación de este modulo donde más se puede apreciar el poder de
-procfs y la simpleza que conlleva tener una interfaz de archivos para acceder a
+Es en la implementación de este módulo donde más se puede apreciar el poder de
+$procfs$ y la simpleza que conlleva tener una interfaz de archivos para acceder a
 la información.\\
 
 En este caso, NextReadableMemoryRegion simplemente lee una a una las lineas de
-el archivo maps dentro de /proc/[pid], buscando el primer memory map que
+el archivo $maps$ dentro de /proc/[pid], buscando el primer memory map que
 contenga la dirección provista, uniéndolo a los que le siguen en caso de ser
 consecutivos y legibles, y retornando la información obtenida.\\
 
@@ -119,7 +119,7 @@ llamado RPC mach\_vm\_region\_recurse, que realiza una tarea muy similar. La
 principal diferencia es que la memoria en OS X se encuentra organizada de
 manera distinta, de manera recursiva, donde un mapa de memoria puede estar
 incluido como submapa de otro. Esto es utilizado normalmente para poder
-compartir las copias en memoria librerías dinámicas entre distintos procesos de
+compartir en memoria librerías dinámicas entre distintos procesos de
 manera sencilla, y no es algo que suela utilizarse más allá de esto.
 Simplemente debe tenerse en cuenta que al pedir una region de memoria se puede
 obtener en realidad un submapa, y en este caso nos introducimos en el mismo
@@ -133,10 +133,10 @@ entre páginas.
 
 \subsubsection{Implementación en Windows}
 
-La implementación en windows resultó asombrosamente similar. La principal
+La implementación en Windows resultó asombrosamente similar. La principal
 diferencia, además de que no se usa un sistema de RPC, es que la memoria no
 está organizada de manera jerárquica, simplificando la implementación de
 get\_next\_readable\_region.\\
 
 Comparándola con la implementación de OS X, VirtualQueryEx cumple el papel de
-mach\_vim\_region\_recurse, y ReadProcessMemory de mach\_vm\_read\_overwrite.\\
+mach\_vim\_region\_recurse y ReadProcessMemory de mach\_vm\_read\_overwrite.\\

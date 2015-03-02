@@ -1,19 +1,19 @@
 \subsection{Módulo Process}
 
-El primer modulo a ser a analizar es Process. El mismo provee una manera
-uniforme de describir a un proceso en las distintas plataformas, y alocar los
+El primer modulo a analizar es Process. El mismo provee una manera
+uniforme de describir a un proceso en las distintas plataformas y reservar los
 recursos necesarios para poder obtener información sobre estos.\\
 
 La funcionalidad exportada es simplemente una interfaz Process, y funciones
-para listar, abrir (alocar los recursos mencionados) y cerrar (desalocarlos)
+para listar, abrir (reservar los recursos mencionados) y cerrar (liberarlos)
 procesos.\\
 
 \subsubsection{Implementación en Linux}
 
-En el caso de Linux basta el pid de un proceso para tener una descripción del
-mismo. Abrir un Process en este caso simplemente chequea que tengamos permisos
+En el caso de Linux basta el $pid$ de un proceso para tener una descripción del
+mismo. Abrir un Process en este caso simplemente revisa que tengamos permisos
 para leer los archivos correspondientes a este en procfs, y luego solo retorna
-el pid.\\
+el $pid$.\\
 
 Luego, la información restante que puede pedirse sobre el proceso es sacada de
 \textit{exe} y \textit{status} dentro del directorio de procfs del proceso.\\
@@ -23,7 +23,7 @@ Para listar los procesos disponibles basta con inspeccionar los directorios de
 
 \subsubsection{Implementación en Windows y OS X}
 
-A diferencia de en Linux donde todo pudo ser implementado en Go, Windows y OS X
+A diferencia de Linux donde todo pudo ser implementado en Go, Windows y OS X
 requirieron utilizar llamadas a APIs en C. Si bien estas pueden hacerse
 directamente desde Go, una decisión que mantuvimos a lo largo de todo el
 proyecto es no abusar de esto, y exportar nuestras propias funciones de C en
