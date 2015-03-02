@@ -1,1 +1,213 @@
-\subsection{Ejemplo de uso}
+\subsection{Ejemplo de uso: Detectando Heartbleed}
+
+El 2014 fue un año sumamente activo en materia de seguridad informática, con
+vulnerabilidades e incidentes de escala nunca antes vistos. Algunos ejemplos de
+estos son la filtración de contenido adulto perteneciente a distintas
+celebridades proveniente de iCloud, que llevo a un cambio radical en la postura
+de Apple respecto a la privacidad de sus usuarios; el hackeo a Sony, que
+publico numerosas películas antes de su estreno y libero una gran cantidad de
+información sensible; POODLE, que puso fin a la historia de SSLv3; goto fail,
+poniendo en riesgo a todos los usuarios de productos de Apple; Shellshock, que
+permitía la ejecución remota de código en infinidad de servidores Linux. Pero
+sin dudas el ejemplo más anecdótico y dañino de estos es la vulnerabilidad
+conocida como Heartbleed (CVE-2014-0160 acorde a la base de datos MITRE).\\
+
+Ésta se debió un error de manejo de memoria en la implementación de la extensión
+de heartbeat de TLS provista por la librería OpenSSL. Éste error causaba que un
+atacante pudiera leer toda la memoria de un sistema vulnerable sin dejar log
+alguno al respecto.\\
+
+Este problema se encontraba en las versiones 1.0.1 a 1.0.1f, y 1.0.2-beta, por
+lo que el bug llevaba dos años en sistemas en producción cuando fue
+descubierto. Debido a esto, las versiones vulnerables de OpenSSL se encontraban
+en millones de servidores de todo el mundo. Como suele ser usual, un parche
+solucionando el problema salió casi en simultaneo con el anuncio del mismo,
+pero esto implicó recompilar software y/o actualizar OpenSSL en infinidad de
+lugares, haciendo difícil coordinar la tarea de modo de asegurarse que se haga
+eficientemente y no se dejen servicios vulnerables por error.\\
+
+Esto es un escenario donde contar con la ayuda de MIG, y en particular de
+MASCHE, podría haber simplificado mucho la mitigación del problema, y aumentado
+la confianza que el equipo de seguridad tiene en la ejecución de la misma.\\
+
+Afortunadamente OpenSSL es utilizado normalmente cómo una librería dinámica, por
+lo que utilizando los módulos Process y Listlibs se podrá encontrar que procesos
+deben reiniciarse luego de actualizar esta librería.\\
+
+Pero esto no alcanza para estar seguros de que ningún proceso vulnerable está
+corriendo en el sistema, ya que la librería con el error puede haber sido
+linkeada estáticamente. Para encontrar este tipo de procesos se utiliza
+Memaccess, creando una firma de la vulnerabilidad y utilizando MASCHE para
+chequear si esta presente o no en cada uno de los procesos.\\
+
+En el caso de Heartbleed, podemos crear una firma viendo cómo se soluciono el
+bug, y detectando si esta presente este arreglo o no. Para hacerlo,
+inspeccionamos el commit que lo arreglo, en particular nos enfocamos en la
+siguiente parte:
+
+\begin{lstlisting}
+diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
+index a2e2475..bcb99b8 100644
+--- a/ssl/t1_lib.c
++++ b/ssl/t1_lib.c
+@@ -3969,16 +3969,20 @@ tls1_process_heartbeat(SSL *s)
+ 	unsigned int payload;
+ 	unsigned int padding = 16; /* Use minimum padding */
+
+-	/* Read type and payload length first */
+-	hbtype = *p++;
+-	n2s(p, payload);
+-	pl = p;
+-
+ 	if (s->msg_callback)
+ 		s->msg_callback(0, s->version, TLS1_RT_HEARTBEAT,
+ 			&s->s3->rrec.data[0], s->s3->rrec.length,
+ 			s, s->msg_callback_arg);
+
++	/* Read type and payload length first */
++	if (1 + 2 + 16 > s->s3->rrec.length)
++		return 0; /* silently discard */
++	hbtype = *p++;
++	n2s(p, payload);
++	if (1 + 2 + payload + 16 > s->s3->rrec.length)
++		return 0; /* silently discard per RFC 6520 sec. 4 */
++	pl = p;
++
+ 	if (hbtype == TLS1_HB_REQUEST)
+ 		{
+ 		unsigned char *buffer, *bp;
+\end{lstlisting}
+
+Luego es cuestión de crear una firma de la función
+\textit{tls1\_process\_heartbeat} en su vulnerable. Si bien esto no es algo
+trivial, es un problema cotidiano en la práctica, y no nos embarcamos en éste
+durante el proyecto. Pero a modo de ejemplo, generamos la firma para una
+version con símbolos de OpenSSL compilada con GCC en su version más reciente de
+Ubuntu 14.04. Para esto, luego de compilar la librería y linkearla
+estáticamente a nginx (a modo de ejemplo), utilizamos gdb para encontrar el
+código de la función:
+
+\begin{lstlisting}
+(gdb) disassemble /r tls1_process_heartbeat
+41 56                           push   %r14
+41 55                           push   %r13
+41 54                           push   %r12
+55                              push   %rbp
+48 89 fd                        mov    %rdi,%rbp
+53                              push   %rbx
+48 83 ec 10                     sub    $0x10,%rsp
+48 8b 97 80 00 00 00            mov    0x80(%rdi),%rdx
+4c 8b a2 30 01 00 00            mov    0x130(%rdx),%r12
+41 0f b6 5c 24 01               movzbl 0x1(%r12),%ebx
+41 0f b6 44 24 02               movzbl 0x2(%r12),%eax
+45 0f b6 2c 24                  movzbl (%r12),%r13d
+c1 e3 08                        shl    $0x8,%ebx
+09 c3                           or     %eax,%ebx
+48 8b 87 98 00 00 00            mov    0x98(%rdi),%rax
+48 85 c0                        test   %rax,%rax
+74 23                           je     0x4b6252 <tls1_process_heartbeat+98>
+44 8b 82 24 01 00 00            mov    0x124(%rdx),%r8d
+48 8b 97 a0 00 00 00            mov    0xa0(%rdi),%rdx
+49 89 f9                        mov    %rdi,%r9
+4c 89 e1                        mov    %r12,%rcx
+48 89 14 24                     mov    %rdx,(%rsp)
+ba 18 00 00 00                  mov    $0x18,%edx
+8b 37                           mov    (%rdi),%esi
+31 ff                           xor    %edi,%edi
+ff d0                           callq  *%rax
+66 41 83 fd 01                  cmp    $0x1,%r13w
+74 4f                           je     0x4b62a8 <tls1_process_heartbeat+184>
+31 c0                           xor    %eax,%eax
+66 41 83 fd 02                  cmp    $0x2,%r13w
+74 0e                           je     0x4b6270 <tls1_process_heartbeat+128>
+48 83 c4 10                     add    $0x10,%rsp
+5b                              pop    %rbx
+5d                              pop    %rbp
+41 5c                           pop    %r12
+41 5d                           pop    %r13
+41 5e                           pop    %r14
+c3                              retq
+90                              nop
+83 fb 12                        cmp    $0x12,%ebx
+41 0f b6 54 24 03               movzbl 0x3(%r12),%edx
+41 0f b6 4c 24 04               movzbl 0x4(%r12),%ecx
+75 e1                           jne    0x4b6262 <tls1_process_heartbeat+114>
+8b b5 a0 02 00 00               mov    0x2a0(%rbp),%esi
+c1 e2 08                        shl    $0x8,%edx
+09 ca                           or     %ecx,%edx
+39 d6                           cmp    %edx,%esi
+75 d2                           jne    0x4b6262 <tls1_process_heartbeat+114>
+83 c6 01                        add    $0x1,%esi
+c7 85 9c 02 00 00 00 00 00 00   movl   $0x0,0x29c(%rbp)
+89 b5 a0 02 00 00               mov    %esi,0x2a0(%rbp)
+eb bd                           jmp    0x4b6262 <tls1_process_heartbeat+114>
+0f 1f 00                        nopl   (%rax)
+44 8d 73 13                     lea    0x13(%rbx),%r14d
+ba 14 0a 00 00                  mov    $0xa14,%edx
+be 48 1a 6c 00                  mov    $0x6c1a48,%esi
+44 89 f7                        mov    %r14d,%edi
+e8 72 45 03 00                  callq  0x4ea830 <CRYPTO_malloc>
+49 89 c5                        mov    %rax,%r13
+c6 00 02                        movb   $0x2,(%rax)
+89 d8                           mov    %ebx,%eax
+49 8d 4d 03                     lea    0x3(%r13),%rcx
+c1 e8 08                        shr    $0x8,%eax
+49 8d 74 24 03                  lea    0x3(%r12),%rsi
+48 89 da                        mov    %rbx,%rdx
+41 88 45 01                     mov    %al,0x1(%r13)
+41 88 5d 02                     mov    %bl,0x2(%r13)
+48 89 cf                        mov    %rcx,%rdi
+e8 eb 53 17 00                  callq  0x62b6d0 <memcpy>
+48 8d 3c 18                     lea    (%rax,%rbx,1),%rdi
+be 10 00 00 00                  mov    $0x10,%esi
+e8 ed a6 05 00                  callq  0x5109e0 <RAND_pseudo_bytes>
+44 89 f1                        mov    %r14d,%ecx
+4c 89 ea                        mov    %r13,%rdx
+be 18 00 00 00                  mov    $0x18,%esi
+48 89 ef                        mov    %rbp,%rdi
+e8 4a 7b 02 00                  callq  0x4dde50 <ssl3_write_bytes>
+85 c0                           test   %eax,%eax
+78 56                           js     0x4b6360 <tls1_process_heartbeat+368>
+48 8b 85 98 00 00 00            mov    0x98(%rbp),%rax
+48 85 c0                        test   %rax,%rax
+74 2a                           je     0x4b6340 <tls1_process_heartbeat+336>
+48 8b 95 a0 00 00 00            mov    0xa0(%rbp),%rdx
+45 89 f0                        mov    %r14d,%r8d
+49 89 e9                        mov    %rbp,%r9
+41 81 e0 ff ff 01 00            and    $0x1ffff,%r8d
+4c 89 e9                        mov    %r13,%rcx
+bf 01 00 00 00                  mov    $0x1,%edi
+48 89 14 24                     mov    %rdx,(%rsp)
+ba 18 00 00 00                  mov    $0x18,%edx
+8b 75 00                        mov    0x0(%rbp),%esi
+ff d0                           callq  *%rax
+4c 89 ef                        mov    %r13,%rdi
+e8 48 48 03 00                  callq  0x4eab90 <CRYPTO_free>
+48 83 c4 10                     add    $0x10,%rsp
+31 c0                           xor    %eax,%eax
+5b                              pop    %rbx
+5d                              pop    %rbp
+41 5c                           pop    %r12
+41 5d                           pop    %r13
+41 5e                           pop    %r14
+c3                              retq
+66 0f 1f 84 00 00 00 00 00      nopw   0x0(%rax,%rax,1)
+4c 89 ef                        mov    %r13,%rdi
+89 44 24 0c                     mov    %eax,0xc(%rsp)
+e8 24 48 03 00                  callq  0x4eab90 <CRYPTO_free>
+8b 44 24 0c                     mov    0xc(%rsp),%eax
+e9 ed fe ff ff                  jmpq   0x4b6262 <tls1_process_heartbeat+114>
+End of assembler dump.
+\end{lstlisting}
+
+Una vez obtenido esto, podemos utilizar memsearch.FindBytesSequence para
+encontrar el código maquina arriba listado en hexadecimal dentro de cada
+proceso. Es importante aclarar que esta firma dista de ser óptima, y está atada
+a una sola version de OpenSSL y una sola configuración de compilación. Usar
+memsearch.FindRegexpMatch puede ayudar a mejorar esto, pero la necesidad o no
+de hacerlo dependerá de las políticas de configuration management de la
+organización que esté utilizando MASCHE.\\
+
+Se provee justo a este informe una maquina virtual que cuenta con versiones de
+OpenSSL y nginx vulnerables a Heartbleed para recrear todo lo acá explicado.\\
+
