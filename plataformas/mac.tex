@@ -10,7 +10,7 @@ a su inclusión en la versión 10 de Mac OS, llamada actualmente OS X.\\
 
 A su vez, XNU está basado en el kernel Mach. Éste surgió como un proyecto de
 investigación en Carnegie Mellon University sobre micro kernels, programación
-distribuida y computación en paralela. Cómo tal, presenta una arquitectura muy
+distribuida y computación en paralela. Como tal, presenta una arquitectura muy
 diferente respecto a los demás sistemas comerciales, basándose fuertemente en la
 orientación a objetos y pasajes de mensajes.\\
 
@@ -21,12 +21,11 @@ basaba, y se agrega una capa de abstracción POSIX basada en código de FreeBSD.
 De este modo, el sistema expone distintas APIs muy diferentes dependiendo a que
 parte del mismo se quiera acceder.\\
 
-Durante el desarrollo del proyecto se intento utilizar la API POSIX en cuanto
+Durante el desarrollo del proyecto intentamos utilizar la API POSIX en cuanto
 era posible, pero lamentablemente esta es muy incompleta, y no fue suficiente
 en la mayoría de los casos. Por esto mismo hubo que recurrir al sistema de IPC
-de Mach, el cual se encuentra notablemente indocumentado. Afortunadamente el el
-este XNU es open source en casi su totalidad, por lo que esto no nos impidió
-seguir adelante.\\
+de Mach, el cual se encuentra notablemente indocumentado. Pero esto no nos impidió
+seguir adelante ya que, afortunadamente, XNU es open source en casi su totalidad. \\
 
 Es destacable mencionar que, a diferencia de en UNIX, la comunicación con el
 kernel usando la API de Mach se hace a través de Remote Procedure Calls. Esto

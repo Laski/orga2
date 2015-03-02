@@ -78,12 +78,12 @@ del proceso a partir de la dirección dada.\\
 
 Con esto ya bastaría para poder inspeccionar la memoria de un proceso, pero
 sabiendo que el principal objetivo es buscar patrones conocidos en la misma
-se implementaron dos funciones qué facilitan dicha tarea. Las mismas están
-basadas en la funcionalidad que ya se explicó, por lo que tienen una sola
-implementación para todas las plataformas.\\
+se implementaron dos funciones que facilitan dicha tarea. Las mismas están
+basadas en la abstracción que explicamos anteriormente, por lo que tienen una sola
+implementación (en Go) para todas las plataformas.\\
 
 La primera de estas, WalkMemory, trabaja sobre un Process y un buffer de bytes.
-Ella va llenando el buffer de manera secuencial con la memoria del proceso
+Esta va llenando el buffer de manera secuencial con la memoria del proceso
 (iniciando donde dejó la lectura anterior) y llamando a una función provista
 por el usuario con el buffer y la dirección inicial de la memoria que contiene
 luego de cada vez que se llena. La segunda función, SlidingWalkMemory, es
