@@ -1,1 +1,85 @@
 \subsection{Introducción a Go}
+Go es un lenguaje de programación de codigo abierto desarrollado en Google en el año 2007. Según su sitio web oficial\footnote{https://golang.org/ref/spec\#Introduction} es un lenguaje de propósito general diseñado ``pensando en programación de sistemas''. Tiene una sintáxis similar a C, es estáticamente tipado, posee garbage collection y soporta concurrencia de manera primitiva.
+
+Estos son algunos aspectos importantes para entender el lenguaje:
+
+\begin{itemize}
+ \item \textbf{Paquetes:} los programas se organizan en paquetes, todo programa empieza su ejecución en el paquete \textit{main}.
+ \item \textbf{Punteros:} Go no tiene aritmética de punteros y la indirección de un puntero es transparente al programador.
+ \item \textbf{Slices:} Una abstracción de secuencias de datos del mismo tipo. Es deseable usar este tipo de construcciones en lugar de directamente arreglos.
+ \item \textbf{error:} Tipo de datos utilizado para el manejo de errores. Go está pensado para manejar errores explícitamente donde ocurren, por lo que es deseable que cada función devuelva, además de su resultado, un valor de \textit{error}.
+ \item \textbf{Go-rutina:} Una función ejecutándose concurrentemente con otras go-rutinas.
+ \item \textbf{Channels:} Mecanismo de comunicación que permite el envío y recepción de datos entre dos go-rutinas.
+\end{itemize}
+
+Así se escribe un programa en Go:
+
+\begin{verbatim}
+package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func say(s string) {
+    for i := 0; i < 5; i++ {
+        time.Sleep(100 * time.Millisecond)
+        fmt.Println(s)
+    }
+}
+
+func main() {
+    go say("mundo")
+    say("hola")
+}
+\end{verbatim}
+
+El programa es un ``Hola mundo'' concurrente: imprime cinco veces ``hola'' mientras imprime cinco veces ``mundo'' desde otro hilo de ejecución.
+
+\subsection{CGO: invocando codigo C desde GO}
+Go provee una forma nativa de llamar a codigo C desde un programa escrito en Go\footnote{http://golang.org/cmd/cgo/}. Esto fue necesario en nuestro proyecto para las implentaciones en Mac OSX y en Windows ya que una buena parte de las funcionalidades sólo podía ser escrita en un lenguaje de bajo nivel como C.
+El pseudo-paquete \textit{C} es el encargado de la comunicacion con codigo C, al importar este paquete se puede especificar el header para la compilación en C:
+
+\begin{verbatim}
+// #include <stdio.h>
+// #include <errno.h>
+import "C"
+\end{verbatim}
+
+Así, a lo largo del codigo en Go podemos, a través de este paquete, invocar funciones en C:
+
+\begin{verbatim}
+package main
+
+// typedef int (*intFunc) ();
+//
+// int
+// bridge_int_func(intFunc f)
+// {
+//		return f();
+// }
+//
+// int fortytwo()
+// {
+//	    return 42;
+// }
+import "C"
+import "fmt"
+
+func main() {
+	f := C.intFunc(C.fortytwo)
+	fmt.Println(int(C.bridge_int_func(f)))
+	// Output: 42
+}
+\end{verbatim}
+
+En contrapartida funciones de Go pueden ser exportadas para utilizarlas en codigo C de la siguiente manera:
+
+\begin{verbatim}
+//export MyFunction
+func MyFunction(arg1, arg2 int, arg3 string) int64 {...}
+
+//export MyFunction2
+func MyFunction2(arg1, arg2 int, arg3 string) (int64, *C.char) {...}
+\end{verbatim}
