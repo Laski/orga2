@@ -3,7 +3,7 @@
 Esta VM contiene todo lo necesario para recrear el ejemplo de cómo utilizar
 MASCHE que se encuentra en el informe.
 
-Se explican a continuación los pasos para hacerlo:
+Se explican a continuación los pasos para hacerlo.
 
 ## Heartbleed linkeado dinámicamente
 
@@ -111,8 +111,9 @@ $ sudo -E go run $GOPATH/src/github.com/mozilla/masche/examples/memsearch.go -ac
 2015/03/01 17:35:54 Found in address: 4b61f0
 ```
 
-Notar que para esto es necesario conocer el PID del proceso, pero en un caso
-real basta con iterar todos.
+Notar que para esto es necesario conocer el PID del proceso, que puede
+obtenerse con `$ pgrep nginx | tail -n 1`. En un caso real habría que realizar
+esto sobre todos los procesos del sistema.
 
 ### Otros ejemplos
 
